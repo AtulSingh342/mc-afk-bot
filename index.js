@@ -1,13 +1,13 @@
 const mineflayer = require('mineflayer');
 const http = require('http');
 
-// Render port requirement fix
-const PORT = process.env.PORT || 3000;
+// Bind HTTP server for Render port check
+const PORT = process.env.PORT || 10000;
 http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Minecraft AFK Bot is running 24/7!\n');
+  res.end('AFK Bot Running 24/7\n');
 }).listen(PORT, () => {
-  console.log(`🌐 Web server listening on port ${PORT}`);
+  console.log(`🌐 Web server active on port ${PORT}`);
 });
 
 const CONFIG = {
@@ -18,20 +18,21 @@ const CONFIG = {
 };
 
 function createBot() {
-  console.log('🔄 Connecting to server...');
+  console.log('🔄 Connecting to Minecraft Server...');
 
   const bot = mineflayer.createBot({
     host: CONFIG.host,
     port: CONFIG.port,
     username: CONFIG.username,
     version: '1.20.2',
-    checkTimeoutInterval: 120000 // Timeout extended for Cloud IPs
+    checkTimeoutInterval: 120000,
+    connectTimeout: 60000
   });
 
   let loggedIn = false;
 
   bot.once('login', () => {
-    console.log('⚡ Connected to proxy! Waiting for world spawn...');
+    console.log('⚡ Connected to proxy/server! Waiting for spawn...');
   });
 
   bot.on('spawn', () => {
@@ -44,11 +45,10 @@ function createBot() {
         bot.chat(`/login ${CONFIG.password}`);
 
         setTimeout(() => {
-          console.log('🚀 Sending /economy command...');
           bot.chat('/economy');
         }, 2000);
       }
-    }, 2000);
+    }, 2500);
   });
 
   bot.on('message', (jsonMsg) => {
@@ -57,22 +57,18 @@ function createBot() {
 
     if ((msg.includes('/login') || msg.includes('register') || msg.includes('password')) && !loggedIn) {
       loggedIn = true;
-      console.log('🔑 Password prompt detected!');
       bot.chat(`/login ${CONFIG.password}`);
-
-      setTimeout(() => {
-        bot.chat('/economy');
-      }, 2000);
+      setTimeout(() => bot.chat('/economy'), 2000);
     }
   });
 
-  // Anti-AFK Jump
+  // Anti-AFK movements
   setInterval(() => {
     if (bot && bot.entity) {
       bot.setControlState('jump', true);
       setTimeout(() => bot.setControlState('jump', false), 400);
     }
-  }, 20000);
+  }, 15000);
 
   bot.on('end', (reason) => {
     console.log(`⚠️ Disconnected (${reason}). Reconnecting in 10s...`);
@@ -80,7 +76,7 @@ function createBot() {
   });
 
   bot.on('error', (err) => {
-    console.log('❌ Error:', err.message);
+    console.log('❌ Connection Error:', err.message);
   });
 }
 
