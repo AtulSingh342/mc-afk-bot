@@ -1,13 +1,13 @@
 const mineflayer = require('mineflayer');
 const http = require('http');
 
-// Bind HTTP server for Render port check
+// Render Port Listener
 const PORT = process.env.PORT || 10000;
 http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('AFK Bot Running 24/7\n');
+  res.end('Minecraft AFK Bot active\n');
 }).listen(PORT, () => {
-  console.log(`🌐 Web server active on port ${PORT}`);
+  console.log(`🌐 Web listener running on port ${PORT}`);
 });
 
 const CONFIG = {
@@ -18,21 +18,22 @@ const CONFIG = {
 };
 
 function createBot() {
-  console.log('🔄 Connecting to Minecraft Server...');
+  console.log('🔄 Attempting direct TCP handshake...');
 
   const bot = mineflayer.createBot({
     host: CONFIG.host,
     port: CONFIG.port,
     username: CONFIG.username,
-    version: '1.20.2',
-    checkTimeoutInterval: 120000,
-    connectTimeout: 60000
+    version: false, // Auto-detect Minecraft version
+    checkTimeoutInterval: 60000,
+    connectTimeout: 45000,
+    skipValidation: true
   });
 
   let loggedIn = false;
 
   bot.once('login', () => {
-    console.log('⚡ Connected to proxy/server! Waiting for spawn...');
+    console.log('⚡ Handshake successful! Connecting to world...');
   });
 
   bot.on('spawn', () => {
@@ -48,7 +49,7 @@ function createBot() {
           bot.chat('/economy');
         }, 2000);
       }
-    }, 2500);
+    }, 2000);
   });
 
   bot.on('message', (jsonMsg) => {
@@ -62,21 +63,21 @@ function createBot() {
     }
   });
 
-  // Anti-AFK movements
+  // Keep-alive jump
   setInterval(() => {
     if (bot && bot.entity) {
       bot.setControlState('jump', true);
-      setTimeout(() => bot.setControlState('jump', false), 400);
+      setTimeout(() => bot.setControlState('jump', false), 350);
     }
   }, 15000);
 
   bot.on('end', (reason) => {
-    console.log(`⚠️ Disconnected (${reason}). Reconnecting in 10s...`);
-    setTimeout(createBot, 10000);
+    console.log(`⚠️ Disconnected (${reason}). Reconnecting in 5s...`);
+    setTimeout(createBot, 5000);
   });
 
   bot.on('error', (err) => {
-    console.log('❌ Connection Error:', err.message);
+    console.log('❌ Connection error:', err.message);
   });
 }
 
