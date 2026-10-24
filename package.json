@@ -1,11 +1,13 @@
 {
   "name": "mc-afk-bot",
   "version": "1.0.0",
+  "description": "24/7 Minecraft AFK Bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "mineflayer": "^4.20.1"
+    "mineflayer": "^4.20.1",
+    "socks-proxy-agent": "^8.0.2"
   }
 }
