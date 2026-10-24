@@ -1,4 +1,14 @@
 const mineflayer = require('mineflayer');
+const http = require('http');
+
+// Render port requirement fix
+const PORT = process.env.PORT || 3000;
+http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Minecraft AFK Bot is running 24/7!\n');
+}).listen(PORT, () => {
+  console.log(`🌐 Web server listening on port ${PORT}`);
+});
 
 const CONFIG = {
   host: 'play.battlepie.net',
@@ -14,8 +24,8 @@ function createBot() {
     host: CONFIG.host,
     port: CONFIG.port,
     username: CONFIG.username,
-    version: '1.20.2', // Explicit stable Java protocol for cross-play proxy
-    checkTimeoutInterval: 30000
+    version: '1.20.2',
+    checkTimeoutInterval: 120000 // Timeout extended for Cloud IPs
   });
 
   let loggedIn = false;
@@ -27,7 +37,6 @@ function createBot() {
   bot.on('spawn', () => {
     console.log(`✅ [${CONFIG.username}] Successfully spawned in-game!`);
 
-    // Force login fallback trigger
     setTimeout(() => {
       if (!loggedIn) {
         loggedIn = true;
@@ -57,7 +66,7 @@ function createBot() {
     }
   });
 
-  // Anti-AFK Jump Loop
+  // Anti-AFK Jump
   setInterval(() => {
     if (bot && bot.entity) {
       bot.setControlState('jump', true);
@@ -66,8 +75,8 @@ function createBot() {
   }, 20000);
 
   bot.on('end', (reason) => {
-    console.log(`⚠️ Disconnected (${reason}). Reconnecting in 5s...`);
-    setTimeout(createBot, 5000);
+    console.log(`⚠️ Disconnected (${reason}). Reconnecting in 10s...`);
+    setTimeout(createBot, 10000);
   });
 
   bot.on('error', (err) => {
